@@ -12,6 +12,7 @@ import { Upload } from "lucide-react";
 import { syllabus } from "@/lib/data";
 
 export default function Home() {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [data, setData] = useState<any>(syllabus);
   const [progress, setProgress] = useState(0);
   const [completedItems, setCompletedItems] = useState<Record<string, boolean>>(
@@ -110,6 +111,7 @@ export default function Home() {
           // Reset progress when loading new data
           setCompletedItems({});
         } catch (error) {
+          console.error("Invalid JSON file", error);
           alert("Invalid JSON file");
         }
       };

@@ -1,3 +1,5 @@
+// This file contains the syllabus data for a software engineering interview preparation course.
+// It includes topics, key concepts, and interview focus areas across various subjects like programming fundamentals, OOP, data structures, algorithms, operating systems, and computer networks.
 export const syllabus = {
   "1_ProgrammingFundamentalsAndCoreConcepts": {
     Topics: [

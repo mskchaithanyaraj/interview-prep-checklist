@@ -50,7 +50,7 @@ export const metadata: Metadata = {
     siteName: "Interview Prep Checklist",
     images: [
       {
-        url: "/og-image.png",
+        url: "/assets/logo.png",
         width: 1200,
         height: 630,
         alt: "Interview Prep Checklist - Software Engineering Interview Preparation",
@@ -63,7 +63,7 @@ export const metadata: Metadata = {
       "Interview Prep Checklist | Software Engineering Interview Preparation",
     description:
       "Master your software engineering interviews with our comprehensive interactive checklist.",
-    images: ["/og-image.png"],
+    images: ["/assets/logo.png"],
     creator: "@interviewprep",
   },
   robots: {
@@ -84,16 +84,6 @@ export const metadata: Metadata = {
   category: "education",
   classification: "Educational Technology",
   referrer: "origin-when-cross-origin",
-  colorScheme: "light dark",
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
-    { media: "(prefers-color-scheme: dark)", color: "#000000" },
-  ],
-  viewport: {
-    width: "device-width",
-    initialScale: 1,
-    maximumScale: 5,
-  },
   icons: {
     icon: [
       { url: "assets/favicon-16x16.png", sizes: "16x16", type: "image/png" },
@@ -142,6 +132,21 @@ export default function RootLayout({
           href="https://fonts.gstatic.com"
           crossOrigin="anonymous"
         />
+
+        {/* Favicon and Apple Touch Icon */}
+        <link
+          rel="icon"
+          type="image/png"
+          sizes="32x32"
+          href="/assets/favicon-32x32.png"
+        />
+        <link
+          rel="icon"
+          type="image/png"
+          sizes="16x16"
+          href="/assets/favicon-16x16.png"
+        />
+        <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png" />
         <meta
           name="format-detection"
           content="telephone=no, date=no, email=no, address=no"
