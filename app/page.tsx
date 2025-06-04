@@ -10,6 +10,7 @@ import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Upload } from "lucide-react";
 import { syllabus } from "@/lib/data";
+import { FilterBar } from "@/components/filter-bar";
 
 export default function Home() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -18,6 +19,7 @@ export default function Home() {
   const [completedItems, setCompletedItems] = useState<Record<string, boolean>>(
     {}
   );
+  const [filter, setFilter] = useState<string | null>(null);
 
   // Load saved progress from localStorage
   useEffect(() => {
@@ -153,7 +155,7 @@ export default function Home() {
               <Button variant="outline" onClick={handleReset}>
                 Reset Progress
               </Button>
-              <Button variant="outline" className="relative">
+              <Button variant="outline" className="relative max-md:hidden">
                 <input
                   type="file"
                   accept=".json"
@@ -174,131 +176,139 @@ export default function Home() {
           </div>
         </div>
 
+        <FilterBar
+          sections={Object.keys(data).filter((k) => k !== "SummaryChecklist")}
+          active={filter}
+          onChange={setFilter}
+        />
+
         {/* Render each section */}
-        {Object.keys(data).map((key) => {
-          if (key === "SummaryChecklist") {
-            return (
-              <SummaryChecklist
-                key={key}
-                title="Summary Checklist"
-                items={data[key]}
-              />
-            );
-          }
+        {Object.keys(data)
+          .filter((key) => !filter || key === filter)
+          .map((key) => {
+            if (key === "SummaryChecklist") {
+              return null; // Skip summary checklist here, handled separately
+            }
 
-          const section = data[key];
-          const sectionTitle = key
-            .replace(/^\d+_/, "")
-            .replace(/([A-Z])/g, " $1")
-            .trim();
+            const section = data[key];
+            const sectionTitle = key
+              .replace(/^\d+_/, "")
+              .replace(/([A-Z])/g, " $1")
+              .trim();
 
-          if (key === "3_DataStructuresAndAlgorithms") {
+            if (key === "3_DataStructuresAndAlgorithms") {
+              return (
+                <div key={key} className="mb-8">
+                  <h2 className="text-2xl font-bold mb-4">{sectionTitle}</h2>
+
+                  {/* Data Structures Table */}
+                  <DataStructureTable
+                    dataStructures={section.DataStructures}
+                    sectionKey={key}
+                    completedItems={completedItems}
+                    onToggleItem={handleToggleItem}
+                  />
+
+                  {/* Algorithms */}
+                  <ChecklistSection
+                    title="Algorithms"
+                    items={section.Algorithms}
+                    sectionKey={`${key}-Algorithms`}
+                    completedItems={completedItems}
+                    onToggleItem={handleToggleItem}
+                  />
+
+                  {/* Time and Space Complexity */}
+                  <ChecklistSection
+                    title="Time and Space Complexity"
+                    items={section.TimeAndSpaceComplexity}
+                    sectionKey={`${key}-TimeAndSpaceComplexity`}
+                    completedItems={completedItems}
+                    onToggleItem={handleToggleItem}
+                  />
+                </div>
+              );
+            }
+
             return (
               <div key={key} className="mb-8">
                 <h2 className="text-2xl font-bold mb-4">{sectionTitle}</h2>
 
-                {/* Data Structures Table */}
-                <DataStructureTable
-                  dataStructures={section.DataStructures}
-                  sectionKey={key}
-                  completedItems={completedItems}
-                  onToggleItem={handleToggleItem}
-                />
+                {section.Topics && (
+                  <ChecklistSection
+                    title="Topics"
+                    items={section.Topics}
+                    sectionKey={key}
+                    completedItems={completedItems}
+                    onToggleItem={handleToggleItem}
+                  />
+                )}
 
-                {/* Algorithms */}
-                <ChecklistSection
-                  title="Algorithms"
-                  items={section.Algorithms}
-                  sectionKey={`${key}-Algorithms`}
-                  completedItems={completedItems}
-                  onToggleItem={handleToggleItem}
-                />
+                {section.KeyConcepts && (
+                  <ChecklistSection
+                    title="Key Concepts"
+                    items={section.KeyConcepts}
+                    sectionKey={`${key}-KeyConcepts`}
+                    completedItems={completedItems}
+                    onToggleItem={handleToggleItem}
+                  />
+                )}
 
-                {/* Time and Space Complexity */}
-                <ChecklistSection
-                  title="Time and Space Complexity"
-                  items={section.TimeAndSpaceComplexity}
-                  sectionKey={`${key}-TimeAndSpaceComplexity`}
-                  completedItems={completedItems}
-                  onToggleItem={handleToggleItem}
-                />
+                {section.InterviewFocus && (
+                  <ChecklistSection
+                    title="Interview Focus"
+                    items={section.InterviewFocus}
+                    sectionKey={`${key}-InterviewFocus`}
+                    completedItems={completedItems}
+                    onToggleItem={handleToggleItem}
+                  />
+                )}
+
+                {section.RecommendedSites && (
+                  <ChecklistSection
+                    title="Recommended Sites"
+                    items={section.RecommendedSites}
+                    sectionKey={`${key}-RecommendedSites`}
+                    completedItems={completedItems}
+                    onToggleItem={handleToggleItem}
+                  />
+                )}
+
+                {section.Practice && (
+                  <ChecklistSection
+                    title="Practice"
+                    items={section.Practice}
+                    sectionKey={`${key}-Practice`}
+                    completedItems={completedItems}
+                    onToggleItem={handleToggleItem}
+                  />
+                )}
+
+                {section.Bonus && (
+                  <ChecklistSection
+                    title="Bonus"
+                    items={section.Bonus}
+                    sectionKey={`${key}-Bonus`}
+                    completedItems={completedItems}
+                    onToggleItem={handleToggleItem}
+                  />
+                )}
+
+                {section.OptionalFor && (
+                  <div className="mt-2 text-sm text-gray-500">
+                    <span className="font-medium">Optional for:</span>{" "}
+                    {section.OptionalFor}
+                  </div>
+                )}
               </div>
             );
-          }
-
-          return (
-            <div key={key} className="mb-8">
-              <h2 className="text-2xl font-bold mb-4">{sectionTitle}</h2>
-
-              {section.Topics && (
-                <ChecklistSection
-                  title="Topics"
-                  items={section.Topics}
-                  sectionKey={key}
-                  completedItems={completedItems}
-                  onToggleItem={handleToggleItem}
-                />
-              )}
-
-              {section.KeyConcepts && (
-                <ChecklistSection
-                  title="Key Concepts"
-                  items={section.KeyConcepts}
-                  sectionKey={`${key}-KeyConcepts`}
-                  completedItems={completedItems}
-                  onToggleItem={handleToggleItem}
-                />
-              )}
-
-              {section.InterviewFocus && (
-                <ChecklistSection
-                  title="Interview Focus"
-                  items={section.InterviewFocus}
-                  sectionKey={`${key}-InterviewFocus`}
-                  completedItems={completedItems}
-                  onToggleItem={handleToggleItem}
-                />
-              )}
-
-              {section.RecommendedSites && (
-                <ChecklistSection
-                  title="Recommended Sites"
-                  items={section.RecommendedSites}
-                  sectionKey={`${key}-RecommendedSites`}
-                  completedItems={completedItems}
-                  onToggleItem={handleToggleItem}
-                />
-              )}
-
-              {section.Practice && (
-                <ChecklistSection
-                  title="Practice"
-                  items={section.Practice}
-                  sectionKey={`${key}-Practice`}
-                  completedItems={completedItems}
-                  onToggleItem={handleToggleItem}
-                />
-              )}
-
-              {section.Bonus && (
-                <ChecklistSection
-                  title="Bonus"
-                  items={section.Bonus}
-                  sectionKey={`${key}-Bonus`}
-                  completedItems={completedItems}
-                  onToggleItem={handleToggleItem}
-                />
-              )}
-
-              {section.OptionalFor && (
-                <div className="mt-2 text-sm text-gray-500">
-                  <span className="font-medium">Optional for:</span>{" "}
-                  {section.OptionalFor}
-                </div>
-              )}
-            </div>
-          );
-        })}
+          })}
+        {!filter && (
+          <SummaryChecklist
+            title="Summary Checklist"
+            items={data["SummaryChecklist"]}
+          />
+        )}
       </div>
     </main>
   );
