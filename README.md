@@ -188,7 +188,7 @@ This project provides a structured syllabus to help you prepare for software eng
 
 1. Clone the repository:
    \`\`\`bash
-   git clone https://github.com/yourusername/interview-prep-checklist.git
+   git clone https://github.com/mskchaithanyaraj/interview-prep-checklist.git
    \`\`\`
 
 2. Navigate to the project directory:
