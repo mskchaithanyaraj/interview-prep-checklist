@@ -1,103 +1,303 @@
-import Image from "next/image";
+"use client";
+
+import type React from "react";
+
+import { useState, useEffect } from "react";
+import { ChecklistSection } from "@/components/checklist-section";
+import { DataStructureTable } from "@/components/data-structure-table";
+import { SummaryChecklist } from "@/components/summary-checklist";
+import { Progress } from "@/components/ui/progress";
+import { Button } from "@/components/ui/button";
+import { Upload } from "lucide-react";
+import { syllabus } from "@/lib/data";
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [data, setData] = useState<any>(syllabus);
+  const [progress, setProgress] = useState(0);
+  const [completedItems, setCompletedItems] = useState<Record<string, boolean>>(
+    {}
+  );
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  // Load saved progress from localStorage
+  useEffect(() => {
+    const savedItems = localStorage.getItem("completedItems");
+    if (savedItems) {
+      setCompletedItems(JSON.parse(savedItems));
+    }
+  }, []);
+
+  // Calculate progress whenever completedItems changes
+  useEffect(() => {
+    if (data) {
+      let totalItems = 0;
+      let completedCount = 0;
+
+      // Count all checkable items
+      Object.keys(data).forEach((key) => {
+        if (key === "SummaryChecklist") return;
+
+        const section = data[key];
+        if (section.Topics) {
+          totalItems += section.Topics.length;
+          section.Topics.forEach((topic: string) => {
+            if (completedItems[`${key}-${topic}`]) completedCount++;
+          });
+        } else if (section.KeyConcepts) {
+          totalItems += section.KeyConcepts.length;
+          section.KeyConcepts.forEach((topic: string) => {
+            if (completedItems[`${key}-KeyConcepts-${topic}`]) completedCount++;
+          });
+        }
+
+        if (section.InterviewFocus) {
+          totalItems += section.InterviewFocus.length;
+          section.InterviewFocus.forEach((topic: string) => {
+            if (completedItems[`${key}-InterviewFocus-${topic}`])
+              completedCount++;
+          });
+        }
+
+        if (section.DataStructures) {
+          Object.keys(section.DataStructures).forEach((ds) => {
+            totalItems += section.DataStructures[ds].length;
+            section.DataStructures[ds].forEach((topic: string) => {
+              if (completedItems[`${key}-DataStructures-${ds}-${topic}`])
+                completedCount++;
+            });
+          });
+        }
+
+        if (section.Algorithms) {
+          totalItems += section.Algorithms.length;
+          section.Algorithms.forEach((topic: string) => {
+            if (completedItems[`${key}-Algorithms-${topic}`]) completedCount++;
+          });
+        }
+
+        if (section.TimeAndSpaceComplexity) {
+          totalItems += section.TimeAndSpaceComplexity.length;
+          section.TimeAndSpaceComplexity.forEach((topic: string) => {
+            if (completedItems[`${key}-TimeAndSpaceComplexity-${topic}`])
+              completedCount++;
+          });
+        }
+      });
+
+      const newProgress =
+        totalItems > 0 ? (completedCount / totalItems) * 100 : 0;
+      setProgress(newProgress);
+
+      // Save to localStorage
+      localStorage.setItem("completedItems", JSON.stringify(completedItems));
+    }
+  }, [completedItems, data]);
+
+  const handleToggleItem = (id: string, checked: boolean) => {
+    setCompletedItems((prev) => ({
+      ...prev,
+      [id]: checked,
+    }));
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        try {
+          const json = JSON.parse(event.target?.result as string);
+          setData(json.SoftwareEngineeringInterviewPreparationSyllabus || json);
+          // Reset progress when loading new data
+          setCompletedItems({});
+        } catch (error) {
+          alert("Invalid JSON file");
+        }
+      };
+      reader.readAsText(file);
+    }
+  };
+
+  const handleReset = () => {
+    if (confirm("Are you sure you want to reset all progress?")) {
+      setCompletedItems({});
+      localStorage.removeItem("completedItems");
+    }
+  };
+
+  if (!data) return <div>Loading...</div>;
+
+  return (
+    <main className="min-h-screen bg-gray-50">
+      <div className="container mx-auto px-4 py-8">
+        <div className="mb-8 bg-white rounded-lg shadow-md p-6">
+          <h1 className="text-3xl font-bold text-gray-800 mb-4">
+            Software Engineering Interview Preparation Checklist
+          </h1>
+
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+            <div className="flex-1">
+              <p className="text-gray-600 mb-2">
+                Track your interview preparation progress
+              </p>
+              <div className="flex items-center gap-4">
+                <Progress value={progress} className="h-2 flex-1" />
+                <span className="text-sm font-medium">
+                  {Math.round(progress)}%
+                </span>
+              </div>
+            </div>
+
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={handleReset}>
+                Reset Progress
+              </Button>
+              <Button variant="outline" className="relative">
+                <input
+                  type="file"
+                  accept=".json"
+                  onChange={handleFileUpload}
+                  className="absolute inset-0 opacity-0 cursor-pointer"
+                />
+                <Upload className="mr-2 h-4 w-4" />
+                Upload JSON
+              </Button>
+            </div>
+          </div>
+
+          <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6">
+            <p className="text-sm text-blue-700">
+              Check off topics as you study them. Your progress will be saved
+              automatically in your browser.
+            </p>
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+
+        {/* Render each section */}
+        {Object.keys(data).map((key) => {
+          if (key === "SummaryChecklist") {
+            return (
+              <SummaryChecklist
+                key={key}
+                title="Summary Checklist"
+                items={data[key]}
+              />
+            );
+          }
+
+          const section = data[key];
+          const sectionTitle = key
+            .replace(/^\d+_/, "")
+            .replace(/([A-Z])/g, " $1")
+            .trim();
+
+          if (key === "3_DataStructuresAndAlgorithms") {
+            return (
+              <div key={key} className="mb-8">
+                <h2 className="text-2xl font-bold mb-4">{sectionTitle}</h2>
+
+                {/* Data Structures Table */}
+                <DataStructureTable
+                  dataStructures={section.DataStructures}
+                  sectionKey={key}
+                  completedItems={completedItems}
+                  onToggleItem={handleToggleItem}
+                />
+
+                {/* Algorithms */}
+                <ChecklistSection
+                  title="Algorithms"
+                  items={section.Algorithms}
+                  sectionKey={`${key}-Algorithms`}
+                  completedItems={completedItems}
+                  onToggleItem={handleToggleItem}
+                />
+
+                {/* Time and Space Complexity */}
+                <ChecklistSection
+                  title="Time and Space Complexity"
+                  items={section.TimeAndSpaceComplexity}
+                  sectionKey={`${key}-TimeAndSpaceComplexity`}
+                  completedItems={completedItems}
+                  onToggleItem={handleToggleItem}
+                />
+              </div>
+            );
+          }
+
+          return (
+            <div key={key} className="mb-8">
+              <h2 className="text-2xl font-bold mb-4">{sectionTitle}</h2>
+
+              {section.Topics && (
+                <ChecklistSection
+                  title="Topics"
+                  items={section.Topics}
+                  sectionKey={key}
+                  completedItems={completedItems}
+                  onToggleItem={handleToggleItem}
+                />
+              )}
+
+              {section.KeyConcepts && (
+                <ChecklistSection
+                  title="Key Concepts"
+                  items={section.KeyConcepts}
+                  sectionKey={`${key}-KeyConcepts`}
+                  completedItems={completedItems}
+                  onToggleItem={handleToggleItem}
+                />
+              )}
+
+              {section.InterviewFocus && (
+                <ChecklistSection
+                  title="Interview Focus"
+                  items={section.InterviewFocus}
+                  sectionKey={`${key}-InterviewFocus`}
+                  completedItems={completedItems}
+                  onToggleItem={handleToggleItem}
+                />
+              )}
+
+              {section.RecommendedSites && (
+                <ChecklistSection
+                  title="Recommended Sites"
+                  items={section.RecommendedSites}
+                  sectionKey={`${key}-RecommendedSites`}
+                  completedItems={completedItems}
+                  onToggleItem={handleToggleItem}
+                />
+              )}
+
+              {section.Practice && (
+                <ChecklistSection
+                  title="Practice"
+                  items={section.Practice}
+                  sectionKey={`${key}-Practice`}
+                  completedItems={completedItems}
+                  onToggleItem={handleToggleItem}
+                />
+              )}
+
+              {section.Bonus && (
+                <ChecklistSection
+                  title="Bonus"
+                  items={section.Bonus}
+                  sectionKey={`${key}-Bonus`}
+                  completedItems={completedItems}
+                  onToggleItem={handleToggleItem}
+                />
+              )}
+
+              {section.OptionalFor && (
+                <div className="mt-2 text-sm text-gray-500">
+                  <span className="font-medium">Optional for:</span>{" "}
+                  {section.OptionalFor}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </main>
   );
 }
