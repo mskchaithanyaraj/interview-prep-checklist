@@ -81,16 +81,18 @@ export function ChecklistSection({
                   >
                     {item}
                   </label>
-                  <a
-                    href={googleUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-600 hover:underline inline-flex items-center text-xs"
-                    title={googleQuery}
-                  >
-                    Google
-                    <ExternalLink className="h-3 w-3 ml-1" />
-                  </a>
+                  {!isIntroTop100 && (
+                    <a
+                      href={googleUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:underline inline-flex items-center text-xs"
+                      title={googleQuery}
+                    >
+                      Google
+                      <ExternalLink className="h-3 w-3 ml-1" />
+                    </a>
+                  )}
                   {isIntroTop100 && (
                     <a
                       href="https://prepinsta.com/top-100-codes/"
