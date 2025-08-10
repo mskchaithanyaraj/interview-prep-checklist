@@ -189,6 +189,7 @@ function SectionWithProgress({
         onToggleItem={onToggleItem}
         density="comfortable"
         gridClassName="grid grid-cols-1 md:grid-cols-2 gap-4"
+        mode="problem"
       />
     </div>
   );

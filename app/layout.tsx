@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { PreferencesProvider } from "@/components/preferences-context";
+import AppHeader from "@/components/app-header";
 import { Manrope } from "next/font/google";
 import "./globals.css";
 
@@ -170,20 +171,10 @@ export default function RootLayout({
           {/* Futuristic background pattern */}
           <div className="fixed inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:14px_24px] pointer-events-none" />
           <div className="relative z-10">
-            <header className="sticky top-0 backdrop-blur bg-white/60 border-b z-30">
-              <div className="container mx-auto px-4 py-3 flex items-center gap-4">
-                <Link href="/" className="font-semibold text-gray-800">
-                  Checklist
-                </Link>
-                <Link
-                  href="/top100"
-                  className="text-gray-600 hover:text-gray-900"
-                >
-                  Top 100 MNC Prep
-                </Link>
-              </div>
-            </header>
-            {children}
+            <PreferencesProvider>
+              <AppHeader />
+              {children}
+            </PreferencesProvider>
           </div>
         </div>
       </body>

@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useMemo } from "react";
 import { ExternalLink } from "lucide-react";
+import { usePreferenceScope } from "@/components/preferences-context";
 
 interface ChecklistSectionProps {
   title: string;
@@ -14,6 +15,7 @@ interface ChecklistSectionProps {
   onToggleItem: (id: string, checked: boolean) => void;
   density?: "default" | "comfortable";
   gridClassName?: string;
+  mode?: "concept" | "problem";
 }
 
 export function ChecklistSection({
@@ -24,7 +26,13 @@ export function ChecklistSection({
   onToggleItem,
   density = "default",
   gridClassName,
+  mode = "concept",
 }: ChecklistSectionProps) {
+  // Use scoped preference: top100 pages will pass mode="problem" but scope is still derived outside.
+  // We'll default to checklist scope; Top100 page uses its own dropdown and we can override when needed.
+  const { site, custom } = usePreferenceScope(
+    mode === "problem" ? "top100" : "checklist"
+  );
   const uniqueItems = useMemo(() => Array.from(new Set(items)), [items]);
   const getCompletedCount = () => {
     return uniqueItems.filter((item) => completedItems[`${sectionKey}-${item}`])
@@ -41,6 +49,16 @@ export function ChecklistSection({
     (density === "comfortable"
       ? "grid grid-cols-1 md:grid-cols-1 lg:grid-cols-2 gap-4"
       : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3");
+
+  // Build the suffix once from preference
+  const siteSuffix =
+    site === "leetcode"
+      ? "LeetCode"
+      : site === "gfg"
+      ? "GeeksForGeeks"
+      : site === "hackerrank"
+      ? "HackerRank"
+      : custom || "";
 
   return (
     <Card className="mb-6">
@@ -59,10 +77,6 @@ export function ChecklistSection({
             const isChecked = !!completedItems[id];
             const isIntroTop100 =
               item.trim().toLowerCase() === "introduction to top 100 codes";
-            const googleQuery = `(${item}) Leetcode/Gfg/Hackerrank`;
-            const googleUrl = `https://www.google.com/search?q=${encodeURIComponent(
-              googleQuery
-            )}`;
 
             return (
               <div key={id} className={`flex items-start ${itemGap}`}>
@@ -81,18 +95,32 @@ export function ChecklistSection({
                   >
                     {item}
                   </label>
-                  {!isIntroTop100 && (
-                    <a
-                      href={googleUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-600 hover:underline inline-flex items-center text-xs"
-                      title={googleQuery}
-                    >
-                      Google
-                      <ExternalLink className="h-3 w-3 ml-1" />
-                    </a>
-                  )}
+                  {!isIntroTop100 &&
+                    (() => {
+                      const base =
+                        mode === "problem"
+                          ? "Problem"
+                          : "Explain the concept of";
+                      const parts = [base, item, siteSuffix].filter(
+                        Boolean
+                      ) as string[];
+                      const q = parts.join(" ");
+                      const href = `https://www.google.com/search?q=${encodeURIComponent(
+                        q
+                      )}`;
+                      return (
+                        <a
+                          href={href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:underline inline-flex items-center text-xs"
+                          title={q}
+                        >
+                          Google
+                          <ExternalLink className="h-3 w-3 ml-1" />
+                        </a>
+                      );
+                    })()}
                   {isIntroTop100 && (
                     <a
                       href="https://prepinsta.com/top-100-codes/"
